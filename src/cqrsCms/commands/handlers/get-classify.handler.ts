@@ -11,11 +11,11 @@ export class GetClassifyHandler implements ICommandHandler<GetClassifyParamComma
         let result;
         /*页面分类无极限*/
         if (command.getClassify.useFor === "page") {
-            result = await this.classifyService.findAllClassifyPage(1);
+            result = await this.classifyService.findAllClassifyPage(command.getClassify.id);
         }
         /*文章分类无极限*/
         if (command.getClassify.useFor === "art") {
-            result = await this.classifyService.findAllClassifyArt(1);
+            result = await this.classifyService.findAllClassifyArt(command.getClassify.id);
         }
         if (command.getClassify.getClassifyById) {
             result = await this.classifyService
