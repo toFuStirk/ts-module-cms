@@ -15,7 +15,7 @@ export class Page extends AggregateRoot {
     /*页面*/
     createPage(data: CreatePageVm) {
         this.apply(new PageCurdEvent(data));
-        this.apply(new SitemapUpdateEvent("0"));
+        // this.apply(new SitemapUpdateEvent("0"));
     }
 
     /*分类*/
@@ -26,6 +26,6 @@ export class Page extends AggregateRoot {
     /*文章*/
     createArticle(data: ArticleCurdVm) {
         this.apply(new ArticleCurdEvents(data));
-        this.apply(new SitemapUpdateEvent("0"));
+        // this.apply(new SitemapUpdateEvent("0"));
     }
 }
