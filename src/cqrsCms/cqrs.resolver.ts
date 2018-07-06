@@ -177,6 +177,7 @@ export class CqrsResolver {
             }
             classifyVM.useFor = useFor;
             classifyVM.getAllClassify = true;
+            classifyVM.id = id;
         }
         result = this.sitemapService.getClassify(classifyVM);
         return result;

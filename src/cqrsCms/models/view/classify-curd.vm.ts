@@ -4,6 +4,8 @@ import { PageClassifyEntity } from "../../../entity/pageClassify.entity";
 export class ClassifyCurdVm {
     /*适用于*/
     public useFor: string;
+    /*id*/
+    public id: number;
 
     /*创建分类*/
     public createClassify?: { art?: ClassifyEntity, page?: PageClassifyEntity };
