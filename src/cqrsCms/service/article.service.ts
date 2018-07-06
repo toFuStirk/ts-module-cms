@@ -126,7 +126,7 @@ export class ArticleService {
             article.recycling = true;
             article.updateAt = new Date();
             const newArticle: ArticleEntity = article;
-            this.respository.updateById(newArticle.id, newArticle);
+            this.respository.save(newArticle);
             count++;
         }
         return count;
@@ -445,7 +445,16 @@ export class ArticleService {
         const article: ArticleEntity = await this.respository.findOneById(id);
         if (article === null) { throw new MessageCodeError("delete:recycling:idMissing"); }
         array.push(article);
-
+        const last = await this.respository.createQueryBuilder()
+            .where('"id" = (select max(id) from public.article_entity_table where "id" < :id  limit 1) ', {id}).getOne();
+        if (last) {
+            array.push(last);
+        }
+        const next = await this.respository.createQueryBuilder()
+            .where('"id" = (select min(id) from public.article_entity_table where "id" > :id limit 1) ', {id}).getOne();
+        if (next) {
+            array.push(next);
+        }
         return { articles: array };
     }
 
