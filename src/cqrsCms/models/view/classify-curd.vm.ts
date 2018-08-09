@@ -24,4 +24,6 @@ export class ClassifyCurdVm {
 
     /*获取具体分类*/
     public getClassifyById?: { id: number, useFor: string };
+    /*获取上级分类直到根目录*/
+    public getParentClassify?: {id: number};
 }
