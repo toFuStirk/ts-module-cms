@@ -99,7 +99,7 @@ export class CqrsResolver {
             const groupId: number = serachArticle.classifyId;
             const findTop: boolean = serachArticle.topPlace;
             if (!keyWords) { keyWords = ""; }
-            articleVM.getArticles = { getArticleByClassifyId: { classifyId: groupId, top: findTop, name: keyWords } };
+            articleVM.getArticles = { getArticleByClassifyId: { classifyId: groupId, top: findTop, name: keyWords }, getArticleAll: false };
             articleVM.limitNum = limitNum;
             articleVM.pages = pages;
         }
@@ -197,6 +197,13 @@ export class CqrsResolver {
             classifyVM.getClassifyById = { useFor: usedFor, id: idNum };
         }
         result = await this.sitemapService.getClassify(classifyVM);
+        return result;
+    }
+    @Query()
+    async getParentClassify(obj, body: { id: number }) {
+        const classifyVM: ClassifyCurdVm = new ClassifyCurdVm();
+        classifyVM.getParentClassify = {id: body.id};
+        const result = await this.sitemapService.getClassify(classifyVM);
         return result;
     }
 
