@@ -24,6 +24,11 @@ export class GetClassifyHandler implements ICommandHandler<GetClassifyParamComma
                     command.getClassify.getClassifyById.id,
                 );
         }
+        if (command.getClassify.getParentClassify) {
+            result = await this.classifyService
+                .getParentClassify(command.getClassify.getParentClassify.id
+                );
+        }
         resolver(result);
     }
 }
