@@ -1362,4 +1362,34 @@ export class ClassifyService {
 
         return { MessageCodeError: result, Continue: update };
     }
+
+    /**
+     * 递归获取上级分类
+     * @param {number} id
+     * @returns {Promise<Array<ClassifyEntity>>}
+     */
+    async getParentClassifyById(id:number){
+        const entityAll: Array<ClassifyEntity> = [];
+        if (id !== 1) {
+            const entity = await this.repository.findOneById(id);
+            const parent = await this.repository.findOneById(entity.groupId);
+            entityAll.push(parent);
+           const array: Array<ClassifyEntity> = await this.getParentClassifyById(parent.id);
+            entityAll.push(...array);
+         }
+         return entityAll;
+    }
+
+    /**
+     * 获取上级分类
+     * @param {number} id
+     * @returns {Promise<Array<ClassifyEntity>>}
+     */
+    async getParentClassify(id:number){
+        const entityAll: Array<ClassifyEntity> = [];
+        const entity = await this.repository.findOneById(id);
+        entityAll.push(entity);
+        entityAll.push(...await this.getParentClassifyById(id));
+        return entityAll;
+    }
 }
