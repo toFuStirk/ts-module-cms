@@ -1,4 +1,4 @@
-import { MiddlewaresConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { GraphQLFactory, GraphQLModule } from "@nestjs/graphql";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { graphiqlExpress, graphqlExpress } from "apollo-server-express";
@@ -16,7 +16,7 @@ export class ApplicationModule implements NestModule {
     }
 
     /*中间件设置*/
-    configure(consumer: MiddlewaresConsumer) {
+    configure(consumer: MiddlewareConsumer) {
         const schema = this.createSchema();
         consumer.apply(graphiqlExpress({ endpointURL: "/graphql" }))
             .forRoutes({ path: "/graphiql", method: RequestMethod.GET })
@@ -27,7 +27,6 @@ export class ApplicationModule implements NestModule {
 
     createSchema() {
         const typeDefs = this.graphqlFactory.mergeTypesByPaths("**/*.types.graphql");
-
         return this.graphqlFactory.createSchema({ typeDefs });
     }
 }

@@ -22,7 +22,7 @@ export class SitemapService {
      * @returns {Promise<void>}
      */
     public async commitXML(arrayOptions, url: string) {
-        let sitemap: SitemapEntity = await this.siteRepository.findOneById(1);
+        let sitemap: SitemapEntity = await this.siteRepository.findOne(1);
         if (sitemap === null) {
             sitemap = arrayOptions;
             let fileName: string;
@@ -32,7 +32,7 @@ export class SitemapService {
                 fileName = "sitemap";
             }
             sitemap.xmlFileName = fileName;
-            await this.siteRepository.insert(sitemap);
+            await this.siteRepository.save(sitemap);
         } else {
             sitemap = arrayOptions;
             let fileName: string;
@@ -47,12 +47,12 @@ export class SitemapService {
             if (arrayOptions.postSelect) { sitemap.postSelect = arrayOptions.postSelect; }
             if (arrayOptions.updateWhenPost) { sitemap.updateWhenPost = arrayOptions.updateWhenPost; }
             if (arrayOptions.postLimit1000) { sitemap.postLimit1000 = arrayOptions.postLimit1000; }
-            await this.siteRepository.updateById(1, sitemap);
+            await this.siteRepository.update(1, sitemap);
         }
     }
 
     public async UpdateXMLFile($mes = 0, url: string) {
-        const sitemap: SitemapEntity = await this.siteRepository.findOneById(1);
+        const sitemap: SitemapEntity = await this.siteRepository.findOne(1);
         if (sitemap.xmlSiteMap) {
             this.buildSitemapXml(url);
         }
@@ -63,7 +63,7 @@ export class SitemapService {
      * @returns {any[]}
      */
     public async getBaiduOptions(getBaiduOptions?) {
-        getBaiduOptions = await this.siteRepository.findOneById(1);
+        getBaiduOptions = await this.siteRepository.findOne(1);
         let arrayOptions = new SitemapEntity();
         if (getBaiduOptions) {
             arrayOptions = getBaiduOptions;

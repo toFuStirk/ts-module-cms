@@ -9,10 +9,6 @@ export class GetPageHandler implements ICommandHandler<GetPageParamCommand> {
 
     async execute(command: GetPageParamCommand, resolver: (value) => void) {
         let result;
-        /*关键字搜索*/
-        if (command.getPage.keywords) {
-            result = this.pageService.serachKeywords(command.getPage.keywords, command.getPage.limit, command.getPage.pages);
-        }
         /*分类id获取页面*/
         if (command.getPage.classifyId) {
             result = this.pageService.findPageByClassifyId(command.getPage.classifyId, command.getPage.limit, command.getPage.pages);
@@ -23,7 +19,7 @@ export class GetPageHandler implements ICommandHandler<GetPageParamCommand> {
         }
         /*获取所有页面*/
         if (command.getPage.getAll) {
-            result = this.pageService.getAllPage(command.getPage.limit, command.getPage.pages);
+            result = this.pageService.getAllPage(command.getPage.limit, command.getPage.pages, command.getPage.keywords);
         }
         resolver(result);
     }

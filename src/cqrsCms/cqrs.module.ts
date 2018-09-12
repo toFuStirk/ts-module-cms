@@ -10,7 +10,6 @@ import { PageClassifyEntity } from "../entity/pageClassify.entity";
 import { PagerService } from "../export/common.paging";
 import { SiteMapModule } from "../sitemap/sitemap.module";
 import { CommandHandlers } from "./commands/handlers";
-import { CqrsResolver } from "./cqrs.resolver";
 import { CqrsService } from "./cqrs.service";
 import { EventHandlers } from "./events/handlers";
 import { PageRepository } from "./repository/pageRepository";
@@ -18,6 +17,9 @@ import { PageSagas } from "./sagas/page.sagas";
 import { ArticleService } from "./service/article.service";
 import { ClassifyService } from "./service/classify.service";
 import { PageService } from "./service/page.service";
+import { ArticleResolver } from "../graphql/resolver/article.resolver";
+import { PageResolver } from "../graphql/resolver/page.resolver";
+import { ClassifyResolver } from "../graphql/resolver/classify.resolver";
 
 @Module({
     imports: [
@@ -31,11 +33,13 @@ import { PageService } from "./service/page.service";
             PageContentEntity,
         ]),
     ],
-    components: [
+    providers: [
         ArticleService,
         ClassifyService,
         PageService,
-        CqrsResolver,
+        ArticleResolver,
+        PageResolver,
+        ClassifyResolver,
         CqrsService,
         PageRepository,
         ...CommandHandlers,

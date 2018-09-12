@@ -1,0 +1,26 @@
+type ReturnPage{
+    #总条数
+    totalItems: Int,
+    #当前页
+    currentPage: Int,
+    #当前页内有多少条数据
+    pageSize: Int,
+    #总页数
+    totalPages: Int,
+    #开始页
+    startPage: Int,
+    #结束页
+    endPage: Int,
+    #开始下标
+    startIndex: Int,
+    #结束下标
+    endIndex: Int,
+    #页码列表
+    pages: [Int]
+}
+enum useFor{
+    #文章分类
+    art,
+    #页面分类
+    page
+}

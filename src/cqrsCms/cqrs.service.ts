@@ -1,4 +1,4 @@
-import { Component } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { CommandBus } from "@nestjs/cqrs";
 import { ArticleParamCommand } from "./commands/impl/article-param.command";
 import { ClassifyParamCommand } from "./commands/impl/classify-param.command";
@@ -13,7 +13,7 @@ import { CreatePageVm } from "./models/view/create-page.vm";
 import { CreateXmlVm } from "./models/view/create-xml-vm";
 import { GetPageVm } from "./models/view/get-page.vm";
 
-@Component()
+@Injectable()
 export class CqrsService {
     /*CommandBus是一个命令流。它将命令委托给相应的处理程序。每个命令都必须有相应的命令处理程序:*/
     constructor(private readonly commonbus: CommandBus) {

@@ -1,0 +1,163 @@
+query getArticlesNoLimit{
+    getArticlesNoLimit(getArticleById:{id:12}){
+        id,
+        name,
+        classify{
+            id
+        }
+    }
+}
+# 新增文章
+mutation createArt{
+    createArt(art: {
+        name: "今日测试文章",
+        classifyId: 9,
+        abstract : "今日测试文章",
+        content :"今日测试文章",
+        topPlace: global,
+        hidden : false,
+    })
+}
+# 修改文章
+mutation updateArt{
+    updateArt(art: {
+        id:149,
+        name: "今日测试文章2",
+        classifyId: 9,
+        abstract : "今日测试文章233333333",
+        content :"今日测试文章",
+        topPlace: global,
+        hidden : false,
+    })
+}
+# 文章放入回收站
+mutation deleteByIds{
+    deleteByIds(ids:[149,150])
+}
+# 回收站还原文章
+mutation reductionArticle{
+    reductionArticle(ids:[149,150])
+}
+# 回收站删除文章
+mutation reductionArticle{
+    recycleDelete(ids:[149,150])
+}
+# 获取所有文章
+query getArticleAll{
+    getArticleAll(limitNum:10,pages:1,hidden: true){
+        pagination{
+            totalItems,
+            totalPages
+        }
+        articles{
+            name,
+            publishedTime,
+            source,
+            classify{
+                id,
+                title
+            },
+            hidden,
+            recycling
+
+        }
+    }
+}
+# 回收站内所有文章
+query recycleFind{
+    recycleFind(limitNum:10,pages:1){
+        pagination{
+            totalItems,
+            totalPages
+        }
+        articles{
+            name,
+            publishedTime,
+            source,
+            classify{
+                id,
+                title
+            },
+            hidden,
+            recycling
+
+        }
+    }
+}
+# 回收站内获取当前分类及子分类下的文章
+query reductionGetByClassifyId{
+    reductionGetByClassifyId(limitNum:10,pages:1,id:2){
+        pagination{
+            totalItems,
+            totalPages
+        }
+        articles{
+            name,
+            publishedTime,
+            source,
+            classify{
+                id,
+                title
+            },
+            hidden,
+            recycling
+
+        }
+    }
+}
+# 获取全局置顶文章
+query findTopPlace{
+    findTopPlace(limitNum:10,pages:1){
+        pagination{
+            totalItems,
+            totalPages
+        }
+        articles{
+            name,
+            publishedTime,
+            source,
+            classify{
+                id,
+                title
+            },
+            hidden,
+            recycling
+
+        }
+    }
+}
+# 根据分类搜索文章
+query searchArticle{
+    searchArticle(limitNum:10,pages:1,keyWords:"新手开车",classifyId:1){
+        pagination{
+            totalItems,
+            totalPages
+        }
+        articles{
+            name,
+            publishedTime,
+            source,
+            classify{
+                id,
+                title
+            },
+            hidden,
+            recycling
+
+        }
+    }
+}
+# 获取指定文章id的内容，包含上一篇和下一篇
+query getArticleById{
+    getArticleById(id:1){
+        name,
+        publishedTime,
+        source,
+        classify{
+            id,
+            title
+        },
+        hidden,
+        recycling
+    }
+}

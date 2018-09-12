@@ -21,7 +21,7 @@ export class ClassifyCurdHandler implements ICommandHandler<ClassifyParamCommand
                     const result = await this.classifyService.classifyCheck(
                         command.classify.useFor,
                         command.classify.createClassify.art.id,
-                        command.classify.createClassify.art.groupId,
+                        command.classify.createClassify.art.parentId,
                         command.classify.createClassify.art.classifyAlias);
                     value = result.Continue;
                     messageCodeError = result.MessageCodeError;
@@ -30,7 +30,7 @@ export class ClassifyCurdHandler implements ICommandHandler<ClassifyParamCommand
                     const result = await this.classifyService.classifyCheck(
                         command.classify.useFor,
                         command.classify.createClassify.page.id,
-                        command.classify.createClassify.page.groupId,
+                        command.classify.createClassify.page.parentId,
                         command.classify.createClassify.page.classifyAlias);
                     value = result.Continue;
                     messageCodeError = result.MessageCodeError;
@@ -41,7 +41,7 @@ export class ClassifyCurdHandler implements ICommandHandler<ClassifyParamCommand
                     const result = await this.classifyService.classifyCheck(
                         command.classify.useFor,
                         command.classify.updateClassify.page.id,
-                        command.classify.updateClassify.page.groupId,
+                        command.classify.updateClassify.page.parentId,
                         command.classify.updateClassify.page.classifyAlias);
                     value = result.Continue;
                     messageCodeError = result.MessageCodeError;
@@ -50,7 +50,7 @@ export class ClassifyCurdHandler implements ICommandHandler<ClassifyParamCommand
                     const result = await this.classifyService.classifyCheck(
                         command.classify.useFor,
                         command.classify.updateClassify.art.id,
-                        command.classify.updateClassify.art.groupId,
+                        command.classify.updateClassify.art.parentId,
                         command.classify.updateClassify.art.classifyAlias);
                     value = result.Continue;
                     messageCodeError = result.MessageCodeError;
@@ -69,6 +69,7 @@ export class ClassifyCurdHandler implements ICommandHandler<ClassifyParamCommand
                 value = result.Continue;
                 messageCodeError = result.MessageCodeError;
             }
+
             if (value === undefined) { value = true; }
             if (value) { page.createClassify(command.classify); }
         }

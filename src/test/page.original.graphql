@@ -1,0 +1,113 @@
+# 新增页面
+mutation createPages{
+    createPages(page:{
+        title: "测试页面3",
+        alias: "测试页面2"
+        classifyId: 2
+    },
+        contents: ["hhhhhhhh","hhhhhhhhhhhhhh"]
+    )
+}
+# 修改页面
+mutation createPages{
+    updatePages(page:{
+        id:3,
+        title: "测试页面9",
+        alias: "测试页面9"
+        classifyId: 2,
+        contents:[
+            {
+                id:1,content: "heh1"
+            },
+            {
+                id:2,content: "hehe2"
+            },
+            {
+                id: 0,content: "新增"
+            }
+        ]
+    }
+    )
+}
+mutation PageCUD{
+    PageCUD(deletePages:{id:[3]})
+}
+query getPagesLimit{
+    getPagesLimit(getAllPage:{limitNum:10,pages:1,keywords:"测试1"}){
+        pages{
+            id
+            title
+            classify{
+                id,
+                classifyAlias
+            },
+            contents{
+                id,
+                content
+            }
+        }
+    }
+}
+query getPagesLimit{
+    getPagesLimit(getPagesByClassifyId:{limitNum:10,pages:1,id:1}){
+        pages{
+            id
+            title
+            classify{
+                id,
+                classifyAlias
+            },
+            contents{
+                id,
+                content
+            }
+        }
+    }
+}
+mutation deletePages {
+    deletePages(ids: [3])
+}
+# 获取所有页面
+query getAllPage{
+    getAllPage(limitNum:10,pages:1){
+        pagination{
+            totalItems,
+            totalPages
+        },
+        pages{
+            id,
+            title,
+            alias,
+            contents{
+                id,
+                content
+            },
+            classify{
+                id,
+                title
+            }
+        }
+    }
+}
+# 获取指定分类下的页面
+query getPagesByClassifyId{
+    getPagesByClassifyId(id:2,limitNum:10,pages:1){
+        pagination{
+            totalItems,
+            totalPages
+        },
+        pages{
+            id,
+            title,
+            alias,
+            contents{
+                id,
+                content
+            },
+            classify{
+                id,
+                title
+            }
+        }
+    }
+}

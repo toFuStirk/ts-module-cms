@@ -12,15 +12,13 @@ export class ArticleCurdEvent implements IEventHandler<ArticleCurdEvents> {
             /*新增文章*/
             await this.articleService.createArticle(
                 event.article.createArticle.url,
-                event.article.createArticle.article,
-                event.article.createArticle.article.pictureUpload);
+                event.article.createArticle.article);
         }
         if (event.article.updateArticle) {
             /*修改文章*/
             await this.articleService.updateArticle(
                 event.article.updateArticle.url,
-                event.article.updateArticle.article,
-                event.article.updateArticle.article.pictureUpload);
+                event.article.updateArticle.article);
         }
         if (event.article.deleteById) {
             /*放入回收站*/
@@ -33,6 +31,7 @@ export class ArticleCurdEvent implements IEventHandler<ArticleCurdEvents> {
         }
         if (event.article.reductionArticle) {
             /*回收站还原*/
+            console.log("handlers层");
             await this.articleService.reductionArticle(event.article.reductionArticle);
         }
         if (event.article.pictureUpload) {

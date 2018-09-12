@@ -1,67 +1,14 @@
 import {
     Column,
-    CreateDateColumn,
     Entity,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
+    OneToMany, Tree, TreeChildren, TreeParent
 } from "typeorm";
 import { ArticleEntity } from "./article.entity";
+import { AbstractFile } from "./abstract.file";
 
 @Entity("article_classify_table")
-export class ClassifyEntity {
-    /*分类Id*/
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    /*分类名称*/
-    @Column({
-        nullable: false,
-        length: 120,
-    })
-    title: string;
-
-    /*分类别名*/
-    @Column({
-        nullable: false,
-        length: 120,
-    })
-    classifyAlias: string;
-
-    /*内链*/
-    @Column({
-        nullable: true,
-        length: 200,
-    })
-    chainUrl: string;
-
-    /*描述*/
-    @Column({
-        nullable: true,
-        length: 200,
-    })
-    describe: string;
-
-    /*颜色*/
-    @Column({
-        nullable: true,
-        length: 40,
-    })
-    color: string;
-
-    /*父节点*/
-    @Column({
-        nullable: true,
-    })
-    groupId: number;
-
-    /*层级*/
-    @Column({
-        nullable: true,
-    })
-    level: number;
-
+@Tree("nested-set")
+export class ClassifyEntity extends AbstractFile {
     /*是否显示当前分类文章*/
     @Column({
         nullable: true,
@@ -86,31 +33,15 @@ export class ClassifyEntity {
     })
     isPreTop: boolean;
 
-    @OneToMany(
-        type => ClassifyEntity,
-        classifyEntity => classifyEntity.parent,
-        { cascadeInsert: true },
-    )
+    @TreeChildren()
     children: Array<ClassifyEntity>;
 
-    @ManyToOne(
-        type => ClassifyEntity,
-        classifyEntity => classifyEntity.children,
-        { cascadeInsert: true },
-    )
+    @TreeParent()
     parent: ClassifyEntity;
-
-    /*创建时间*/
-    @CreateDateColumn()
-    createAt: Date;
-
-    /*修改时间*/
-    @UpdateDateColumn()
-    updateAt: Date;
 
     @OneToMany(
         type => ArticleEntity,
-        articleEntity => articleEntity.classifications,
+        articleEntity => articleEntity.classify,
     )
     articles: Array<ArticleEntity>;
 }

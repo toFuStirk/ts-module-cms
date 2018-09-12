@@ -1,5 +1,4 @@
-import { ClassifyEntity } from "../../../entity/classify.entity";
-import { PageClassifyEntity } from "../../../entity/pageClassify.entity";
+import { ClassifyInterface } from "../../common/classify.interface";
 
 export class ClassifyCurdVm {
     /*适用于*/
@@ -8,10 +7,10 @@ export class ClassifyCurdVm {
     public id: number;
 
     /*创建分类*/
-    public createClassify?: { art?: ClassifyEntity, page?: PageClassifyEntity };
+    public createClassify?: { art?: ClassifyInterface, page?: ClassifyInterface };
 
     /*修改分类*/
-    public updateClassify?: { art?: ClassifyEntity, page?: PageClassifyEntity };
+    public updateClassify?: { art?: ClassifyInterface, page?: ClassifyInterface };
 
     /*删除分类*/
     public deleteClassify?: number;

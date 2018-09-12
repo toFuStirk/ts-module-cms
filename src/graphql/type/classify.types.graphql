@@ -1,0 +1,103 @@
+type Mutation{
+    # 创建分类
+    createClassify(useFor:useFor!,classify:ClassifyCreate):String,
+    # 修改分类
+    updateClassify(useFor:useFor!,classify:ClassifyUpdate):String,
+    # 删除分类
+    deleteClassify(useFor:useFor!,id:Int!):String,
+    # 移动分类
+    mobileClassify(useFor:useFor!, id:Int!,parentId:Int!):String
+}
+type Query{
+    # 获取所有分类, id用于获取指定分类的子级分类
+    getClassifys(useFor:useFor!,id:Int) : [Classify],
+    # 根据分类id获取分类详情
+    getClassifyById(useFor:useFor!,id:Int!):ClassifyOne,
+    # 获取所有上级分类, 目前只用于 文章分类
+    getParentClassify(id:Int!) : [Classify],
+}
+input AllClassify{
+    #分类id
+    id:Int,
+    #适用于文章或者页面分类
+    useFor:useFor!
+}
+type ClassifyOne{
+    classifyEntity:[Classify],
+    MessageCodeError:String
+}
+input ClassifyCreate{
+    #分类名称
+    title:String!,
+    #分类别名
+    classifyAlias:String!,
+    #内链
+    chainUrl:String,
+    #描述
+    describe:String,
+    #颜色
+    color:String,
+    #父节点
+    parentId:Int,
+    #是否显示当前分类文章
+    isCurrentType:Boolean,
+    #是否显示子级分类文章
+    isChildType:Boolean,
+    #是否显示全局置顶文章
+    isAllTop:Boolean,
+    #是否显示上级置顶文章
+    isPreTop:Boolean
+
+}
+input ClassifyUpdate{
+    #分类id
+    id:Int!,
+    #分类名称
+    title:String,
+    #分类别名
+    classifyAlias:String,
+    #内链
+    chainUrl:String,
+    #描述
+    describe:String,
+    #颜色
+    color:String,
+    #父节点
+    parentId:Int,
+    #是否显示当前分类文章
+    isCurrentType:Boolean,
+    #是否显示子级分类文章
+    isChildType:Boolean
+    #是否显示全局置顶文章
+    isAllTop:Boolean
+    #是否显示上级置顶文章
+    isPreTop:Boolean
+}
+type Classify{
+    #分类Id
+    id:Int,
+    #分类名称
+    title:String,
+    #分类别名
+    classifyAlias:String,
+    #内链
+    chainUrl:String,
+    #描述
+    describe:String,
+    #颜色
+    color:String,
+    #父节点
+    groupId:Int,
+    #是否显示当前分类文章
+    isCurrentType:Boolean,
+    #是否显示子级分类文章
+    isChildType:Boolean
+    #是否显示全局置顶文章
+    isAllTop:Boolean
+    #是否显示上级置顶文章
+    isPreTop:Boolean
+    # 子节点
+    children:[Classify],
+    # 父节点
+    parent:Classify
+}

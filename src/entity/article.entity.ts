@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, JoinColumn, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { ClassifyEntity } from "./classify.entity";
 
 @Entity("article_entity_table")
@@ -13,13 +13,6 @@ export class ArticleEntity {
         length: 120,
     })
     name: string;
-
-    /*分类名称*/
-    @Column({
-        nullable: true,
-        length: 100,
-    })
-    classify: string;
 
     /*分类Id*/
     @Column({
@@ -61,12 +54,14 @@ export class ArticleEntity {
     /*删除(回收站)*/
     @Column({
         nullable: true,
+        default: false
     })
     recycling: boolean;
 
     /*发布时间*/
     @Column({
         nullable: true,
+        default: () => "NOW ()"
     })
     publishedTime: Date;
 
@@ -130,27 +125,6 @@ export class ArticleEntity {
     @UpdateDateColumn()
     updateAt: Date;
 
-    /*空间名*/
-    @Column({
-        nullable: true,
-        length: 20,
-    })
-    bucketName: string;
-
-    /*图片名*/
-    @Column({
-        nullable: true,
-        length: 500,
-    })
-    pictureName: string;
-
-    /*图片类型*/
-    @Column({
-        nullable: true,
-        length: 30,
-    })
-    type: string;
-
     /*图片地址*/
     @Column({
         nullable: true,
@@ -165,11 +139,13 @@ export class ArticleEntity {
     check: boolean;
 
     @ManyToOne(
-        type => ClassifyEntity,
-        classifyEntity => classifyEntity.articles,
-        { cascadeUpdate: true },
+        type => ClassifyEntity, classifyEntity => classifyEntity.articles
     )
-    classifications: ClassifyEntity;
+    @JoinColumn({
+        name: "classifyId",
+        referencedColumnName: "id"
+    })
+    classify: ClassifyEntity;
     // 上传图片
     pictureUpload: PictureFace;
 }

@@ -4,17 +4,6 @@ import { SiteEntity } from "../entity/site.entity";
 import { VisitEntity } from "../entity/visit.entity";
 import { PagerService } from "../export/common.paging";
 import { RegistrationService } from "./registration.service";
-
-function objToStrMap(obj): Map<string, string> {
-    const strMap = new Map();
-    if (obj) {
-        for (const k of Object.keys(obj)) {
-            strMap.set(k, obj[ k ]);
-        }
-    }
-    return strMap;
-}
-
 @Resolver()
 export class EnterResolver {
     constructor(private readonly registration: RegistrationService,
@@ -22,58 +11,35 @@ export class EnterResolver {
     }
 
     @Query("getAllVisits")
-    async getAllVisits(obj, arg) {
-        const str: string = JSON.stringify(arg);
-        const bToJSon = JSON.parse(str);
-        let map = new Map();
-        map = objToStrMap(bToJSon);
-        const result = await this.registration.getVisit(map.get("limit"), map.get("pages"));
-        const paging = this.pagerService.getPager(result.totals, map.get("pages"), map.get("limit"));
+    async getAllVisits(obj, body: {limit: number, pages: number}) {
+        const result = await this.registration.getVisit(body.limit, body.pages);
+        const paging = this.pagerService.getPager(result.totals,  body.pages, body.limit);
         return { pagination: paging, visits: result.visits };
     }
 
     @Query("getAllSites")
-    async getAllSites(obj, arg) {
-        const str: string = JSON.stringify(arg);
-        const bToJSon = JSON.parse(str);
-        let map = new Map();
-        map = objToStrMap(bToJSon);
-        const result = await this.registration.getSite(map.get("limit"), map.get("pages")).then(a => {
-            return a;
-        });
-        const paging = this.pagerService.getPager(result.totals, map.get("pages"), map.get("limit"));
+    async getAllSites(obj, body: {limit: number, pages: number}) {
+        const result = await this.registration.getSite(body.limit, body.pages);
+        const paging = this.pagerService.getPager(result.totals,  body.pages, body.limit);
         return { sites: result.sites, pagination: paging };
     }
 
     @Query("getAllBlocks")
-    async getAllBlocks(obj, arg) {
-        const str: string = JSON.stringify(arg);
-        const bToJSon = JSON.parse(str);
-        let map = new Map();
-        map = objToStrMap(bToJSon);
-        const result = await this.registration.getAllBlocks(map.get("limit"), map.get("pages"));
-        const paging = this.pagerService.getPager(result.totals, map.get("pages"), map.get("limit"));
+    async getAllBlocks(obj, body: {limit: number, pages: number}) {
+        const result = await this.registration.getAllBlocks(body.limit, body.pages);
+        const paging = this.pagerService.getPager(result.totals,  body.pages, body.limit);
         return { blocks: result.blocks, pagination: paging };
     }
 
     @Mutation("createBlocks")
-    async createBlocks(obj, arg) {
-        const str: string = JSON.stringify(arg);
-        const bToJSon = JSON.parse(str);
-        let map = new Map();
-        map = objToStrMap(bToJSon);
-        const block: BlockEntity = map.get("block");
-        const result = await this.registration.createBlock(block);
+    async createBlocks(obj, body: {block: BlockEntity}) {
+        const result = await this.registration.createBlock(body.block);
         return JSON.stringify(result);
     }
 
     @Mutation("createSites")
-    async createSites(obj, arg) {
-        const str: string = JSON.stringify(arg);
-        const bToJSon = JSON.parse(str);
-        let map = new Map();
-        map = objToStrMap(bToJSon);
-        const site: SiteEntity = map.get("site");
+    async createSites(obj, body: {site: SiteEntity }) {
+        const site: SiteEntity = body.site;
         if (site.eventDate) {
             const date: string = site.eventDate.toString();
             site.eventDate = new Date(Date.parse(date.replace(/- /g, "/")));
@@ -91,13 +57,8 @@ export class EnterResolver {
     }
 
     @Mutation("createVisits")
-    async createVisits(obj, arg) {
-        const str: string = JSON.stringify(arg);
-        const bToJSon = JSON.parse(str);
-        let map = new Map();
-        map = objToStrMap(bToJSon);
-        const visit: VisitEntity = map.get("visit");
-        const result = await this.registration.createVisit(visit);
+    async createVisits(obj, body: {visit: VisitEntity}) {
+        const result = await this.registration.createVisit(body.visit);
         return JSON.stringify(result);
     }
 }

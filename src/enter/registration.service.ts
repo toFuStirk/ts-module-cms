@@ -18,7 +18,7 @@ export class RegistrationService {
         let code: number;
         try {
             block.collapse = false;
-            await this.blockRespository.save(block);
+            await this.blockRespository.save(await this.blockRespository.create(block));
             message = "添加成功";
             code = 200;
         } catch (err) {
@@ -36,10 +36,9 @@ export class RegistrationService {
         site.startTime = time;
         const newTime: Date = site.endTime;
         site.endTime = newTime;
-        /* new Date(newTime.getTime() - newTime.getTimezoneOffset() * 60 * 1000);*/
         try {
             site.collapse = false;
-            await this.siteRespository.save(site);
+            await this.siteRespository.save(await this.siteRespository.create(site));
             message = "添加成功";
             code = 200;
         } catch (err) {
@@ -55,7 +54,7 @@ export class RegistrationService {
         let code: number;
         try {
             visit.collapse = false;
-            await this.visitRespository.save(visit);
+            await this.visitRespository.save(await this.visitRespository.create(visit));
             message = "添加成功";
             code = 200;
         } catch (err) {
@@ -67,31 +66,32 @@ export class RegistrationService {
 
     /*获取街区入驻信息*/
     async getAllBlocks(limit?: number, pages?: number) {
-        const result = await this.blockRespository.createQueryBuilder().orderBy("id", "ASC").skip(limit * (pages - 1)).take(limit).getManyAndCount().then(a => {
-            return a;
+        const result = await this.blockRespository.findAndCount({
+            order: {id: "ASC"},
+            skip: limit * (pages - 1),
+            take: limit
         });
-        const str: string = JSON.stringify(result);
-        const num: string = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-        const block: Array<BlockEntity> = Array.from(JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))));
-        return { blocks: block, totals: Number(num) };
+        return { blocks: result[0], totals: result[1] };
     }
 
     /*获取场地租用信息*/
     async getSite(limit?: number, pages?: number) {
-        const result = await this.siteRespository.createQueryBuilder().orderBy("id", "ASC").skip(limit * (pages - 1)).take(limit).getManyAndCount();
-        const str: string = JSON.stringify(result);
-        const num: string = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-        const site: Array<SiteEntity> = Array.from(JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))));
-        return { sites: site, totals: Number(num) };
+        const result = await this.siteRespository.findAndCount({
+            order: {id: "ASC"},
+            skip: limit * (pages - 1),
+            take: limit
+        });
+        return { sites: result[0], totals: result[1]};
     }
 
     /*获取参观预约信息*/
     async getVisit(limit?: number, pages?: number) {
-        const result = await this.visitRespository.createQueryBuilder().orderBy("id", "ASC").skip(limit * (pages - 1)).take(limit).getManyAndCount();
-        const str: string = JSON.stringify(result);
-        const num: string = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-        const visit: Array<VisitEntity> = Array.from(JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))));
-        return { visits: visit, totals: Number(num) };
+        const result = await this.visitRespository.findAndCount({
+            order: {id: "ASC"},
+            skip: limit * (pages - 1),
+            take: limit
+        });
+        return { visits: result[0], totals: result[1] };
     }
 
 }

@@ -6,8 +6,8 @@ module.exports= {
   "username": "postgres",
   "password": "123456",
   "database": "postgres",
-  "entities": [`${SOURCE_PATH}/**/**.entity{.ts,.js}`],
+  "entities": [`**/**.entity{.ts,.js}`],
   "synchronize": true,
-  "logging":null,
+  "logging":true,
     "logger":"simple-console"
 }

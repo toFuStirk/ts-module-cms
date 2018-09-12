@@ -23,7 +23,6 @@ const cross = (req, res, next) => {
 async function bootstrap() {
     const app = await NestFactory.create(ApplicationModule);
     app.use(cross);
-    app.use(bodyParser.json({ limit: "100000kb" }));
     await app.listen(3001);
 }
 

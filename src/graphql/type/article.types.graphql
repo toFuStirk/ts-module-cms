@@ -1,0 +1,174 @@
+type Mutation{
+    # 新增文章
+    createArt(art:ArticleInput):String,
+    # 修改文章
+    updateArt(art:ArticleUpdate):String,
+    # 批量删除文章到回收站
+    deleteByIds(ids:[Int]):String,
+    # 回收站内删除删除文章
+    recycleDelete(ids:[Int]):String,
+    # 回收站内还原文章
+    reductionArticle(ids: [Int]):String,
+    # 勿使用
+    classifyTopPlace(id: Int!, display:[Int]!): String
+}
+type Query{
+    # 获取所有文章,hidden 可以不传
+    getArticleAll(limitNum:Int!,pages:Int!,hidden:Boolean): ArticlePagination,
+    # 获取所有回收站内文章
+    recycleFind(limitNum:Int!,pages:Int!): ArticlePagination,
+    # 回收站内根据分类id搜索  show 是否显示置顶文章
+    reductionGetByClassifyId(id:Int!,limitNum:Int!,pages:Int!):ArticlePagination,
+    # 获取所有全局文章
+    findTopPlace(limitNum:Int!,pages:Int!): ArticlePagination,
+    # 关键字条件搜索文章   topPlace 置顶, classifyId 可以为根节点
+    searchArticle(limitNum:Int!,pages:Int!,keyWords:String,classifyId:Int!,topPlace:Boolean): ArticlePagination,
+    # 此处用于搜索 资讯和活动下分类的 文章
+    keywordSearch(limitNum:Int!,pages:Int!,keyWords:String): ArticlePagination,
+    # 获取文章详情，此处会返回 上一篇文章 和下一篇 文章
+    getArticleById(id:Int!):[Article]
+    #  显示子级分类文章,此处id为分类id
+    showNext(id:Int!):[Article],
+    # 显示上级置顶文章,此处id为分类id
+    superiorArticle(id:Int!):[Article],
+    # 显示当前分类下的所有文章
+    getCurrentClassifyArticles(id:Int!):[Article],
+
+}
+input ArticleInput{
+    #文章名
+    name:String!,
+    #分类Id
+    classifyId:Int!,
+    #摘要
+    abstract:String,
+    #内容
+    content:String,
+    #置顶
+    topPlace:stick,
+    #是否隐藏
+    hidden:Boolean!,
+    #发布时间
+    publishedTime:String,
+    #开始时间
+    startTime:String,
+    #结束时间
+    endTime:String,
+    #活动地址
+    activityAddress:String,
+    #主办单位
+    organizer:String,
+    #活动人数
+    peopleNum:Int,
+    #来源
+    source:String,
+    #来源链接
+    sourceUrl:String,
+    # 图片地址
+    pictureUrl: String
+
+}
+input ArticleUpdate{
+    #文章Id
+    id:Int!,
+    #文章名
+    name:String,
+    #分类名称
+    classify:String,
+    #分类Id
+    classifyId:Int,
+    #摘要
+    abstract:String,
+    #内容
+    content:String,
+    #置顶
+    topPlace:stick,
+    #是否隐藏
+    hidden:Boolean,
+    #发布时间
+    publishedTime:String,
+    #开始时间
+    startTime:String,
+    #结束时间
+    endTime:String,
+    #活动地址
+    activityAddress:String,
+    #主办单位
+    organizer:String,
+    #活动人数
+    peopleNum:Int,
+    #来源
+    source:String,
+    #来源链接
+    sourceUrl:String,
+    # 图片地址
+    pictureUrl: String
+}
+type Article{
+    #文章Id
+    id:Int,
+    #文章名
+    name:String,
+    #分类
+    classify:Classify,
+    #文章地址
+    url:String,
+    #来源
+    source:String,
+    #来源链接
+    sourceUrl:String,
+    #置顶
+    topPlace:String,
+    #是否隐藏
+    hidden:Boolean,
+    #删除(回收站)
+    recycling:Boolean,
+    #发布时间
+    publishedTime:String,
+    #开始时间
+    startTime:String,
+    #结束时间
+    endTime:String,
+    #活动地址
+    activityAddress:String,
+    #主办单位
+    organizer:String,
+    #活动人数
+    peopleNum:Int,
+    #摘要
+    abstract:String,
+    #内容
+    content:String,
+    #图片地址
+    pictureUrl:String,
+    #创建时间
+    createAt:String,
+    #修改时间
+    updateAt:String,
+    #全选
+    check:Boolean,
+    # 上一篇
+    lastArticle: Article,
+    # 下一篇
+    nextArticle: Article
+}
+type ArticlePagination{
+    #分页
+    pagination:ReturnPage,
+    #文章列表
+    articles:[Article]
+}
+enum stick{
+    #全局
+    global,
+    #当前
+    current,
+    #一级分类
+    level1,
+    #二级分类
+    level2,
+    #三级分类
+    level3,
+    #取消置顶
+    cancel
+}

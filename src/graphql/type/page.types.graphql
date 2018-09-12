@@ -1,0 +1,96 @@
+type Mutation{
+    # 新增页面
+    createPages(page:CreatePage,contents: [String]):String,
+    # 修改页面
+    updatePages(page:UpdatePage):String,
+    # 删除页面
+    deletePages(ids:[Int]):String,
+}
+type Query{
+    # 获取所有页面
+    getAllPage(limitNum:Int!, pages:Int!, keywords: String):PagePagination,
+    # 所有指定分类下的所有页面
+    getPagesByClassifyId(id:Int!,limitNum:Int!, pages:Int!):PagePagination,
+    # 获取单个页面详情
+    getPageById(id:Int!):Pages
+}
+type Pages{
+    #页面id
+    id:Int,
+    #页面标题
+    title:String,
+    #页面别名
+    alias:String,
+    #是否开启
+    open:Boolean,
+    #页面分类Id
+    classifyId:Int,
+    #创建时间
+    createAt:String,
+    #修改时间
+    updateAt:String,
+    #内容
+    contents:[Content],
+    #全选
+    check:Boolean,
+    # 分类
+    classify: Classify
+}
+input UpdatePage{
+    #页面id
+    id:Int,
+    #页面名称
+    title:String,
+    #页面别名
+    alias:String,
+    #页面内容
+    contents:[ContentArray],
+    #页面分类名称
+    classify:String,
+    #页面分类id
+    classifyId:Int,
+    #分页
+    limitNum:Int
+    #第几页
+    pages:Int
+}
+input ContentArray{
+    #内容id
+    id:Int,
+    #页面内容
+    content:String
+}
+input CreatePage{
+    #页面id
+    id:Int,
+    #页面名称
+    title:String!,
+    #页面别名
+    alias:String!,
+    #页面内容
+    content:[String],
+    #页面分类名称
+    classify:String,
+    #页面分类id
+    classifyId:Int!,
+    #分页
+    limitNum:Int
+    #第几页
+    pages:Int
+}
+type Content{
+    #内容id
+    id:Int,
+    #页面id
+    parentId:Int,
+    #页面内容
+    content:String,
+    #路径
+    path:String,
+    #编号
+    num:Int
+}
+type PagePagination{
+    pagination:ReturnPage,
+    pages:[Pages]
+}

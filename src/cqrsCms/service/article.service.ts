@@ -1,13 +1,14 @@
-import { Component, HttpException, Inject } from "@nestjs/common";
+import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { ArticleEntity, PictureFace } from "../../entity/article.entity";
+import { Any, In, Like, Repository } from "typeorm";
+import { ArticleEntity } from "../../entity/article.entity";
 import { ClassifyEntity } from "../../entity/classify.entity";
 import { ImagePreProcessInfo } from "../common/error.interface";
 import { MessageCodeError } from "../errorMessage/error.interface";
 import { ClassifyService } from "./classify.service";
-
-@Component()
+const _ = require("underscore");
+let result;
+@Injectable()
 export class ArticleService {
     constructor(
         @InjectRepository(ArticleEntity) private readonly respository: Repository<ArticleEntity>,
@@ -22,90 +23,52 @@ export class ArticleService {
      * @returns {Promise<Array<ArticleEntity>>}
      */
     async getArticleAll(limit?: number, hidden?: boolean, pages?: number) {
-        let title = 0;
-        const resultAll: Array<ArticleEntity> = [];
-        let newresult: Array<ArticleEntity> = [];
-        let str: string;
-        let num: string;
-        if (hidden === true) {
-            const newArray: Array<ArticleEntity> = [];
-            const result = await this.respository
-                .createQueryBuilder()
-                .where("\"recycling\"<> :recycling and hidden=true", { recycling: true })
-                .orderBy("ArticleEntity.publishedTime", "DESC")
+        try {
+            result = await this.respository.createQueryBuilder("article")
+                .leftJoinAndSelect("article.classify", "classify")
+                .where(" case when :hidden1::text <> '' then " +
+                    " ( case when :hidden2 = true  " +
+                    " then  \"article\".\"hidden\" = true and \"article\".\"recycling\" = true  " +
+                    " else (\"article\".\"recycling\" = true and \"article\".\"hidden\" = false) end ) " +
+                    " else (\"article\".\"recycling\" = false or \"article\".\"recycling\" is null) end ", {
+                    hidden1: hidden ? hidden : undefined,
+                    hidden2: hidden ? hidden : undefined
+                })
+                .orderBy("article.publishedTime", "DESC")
                 .skip(limit * (
                     pages - 1
                 ))
                 .take(limit)
                 .getManyAndCount();
-            str = JSON.stringify(result);
-            newresult = Array.from(JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))));
-            for (const t in newresult) {
-                if (newresult[ t ].hidden) {
-                    newArray.push(newresult[ t ]);
-                }
-            }
-            num = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-            newresult = newArray;
+        } catch (err) {
+            throw new HttpException("getArticleAll:" + err.toString(), 404);
         }
-        if (hidden === false) {
-            const result = await this.respository
-                .createQueryBuilder()
-                .where("\"recycling\"<> :recycling  and hidden=false", { recycling: true })
-                .orderBy("ArticleEntity.publishedTime", "DESC")
-                .skip(limit * (
-                    pages - 1
-                ))
-                .take(limit)
-                .getManyAndCount();
-            str = JSON.stringify(result);
-            num = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-            newresult = Array.from(JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))));
-        }
-        if (hidden === undefined) {
-            const result = await this.respository
-                .createQueryBuilder()
-                .where("recycling=false or recycling is null")
-                .orderBy(
-                    "ArticleEntity.publishedTime",
-                    "DESC",
-                ).skip(limit * (
-                    pages - 1
-                )).take(limit).getManyAndCount();
-            str = JSON.stringify(result);
-            num = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-            newresult = Array.from(JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))));
-        }
-        title = Number(num);
-        resultAll.push(...newresult);
-
-        return { articles: resultAll, totalItems: title };
+        return { articles: result[0], totalItems: result[1] };
     }
 
     /**
-     * 全局搜索
+     * 此处用于  搜索 资讯和活动 下分类的 文章
      * @param {string} name
      * @param {number} limit
      * @returns {Promise<Array<ArticleEntity>>}
      */
     async searchArticles(name: string, limit?: number, pages?: number) {
-        const strArt = `%${name}%`;
         const array: Array<number> = await this.classifyService.getClassifyIdForArt();
         if (array.length !== 0) {
-            const result = await this.respository.createQueryBuilder()
-                .where("\"classifyId\" in (:id)", { id: array })
-                .andWhere("\"name\"like :name and \"recycling\" =\'false\' or recycling isnull ", { name: strArt })
-                .orderBy("ArticleEntity.publishedTime", "DESC")
-                .skip(limit * (
-                    pages - 1
-                ))
-                .take(limit)
-                .getManyAndCount();
-            const str: string = JSON.stringify(result);
-            const num: string = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-            const newresult: Array<ArticleEntity> = Array.from(JSON.parse(str.substring(str.indexOf("[")
-                + 1, str.lastIndexOf(","))));
-            return { articles: newresult, totalItems: Number(num) };
+            result = await this.respository.findAndCount({
+                where: {
+                    classifyId: In(array),
+                    name: Like(`%${name ? name : ""}%`),
+                    recycling: Any([false, undefined])
+                },
+                relations: ["classify"],
+                order: {
+                    publishedTime: "DESC"
+                },
+                skip: limit * (pages - 1),
+                take: limit
+            });
+            return { articles: result[0], totalItems: result[1] };
         } else {
             const newArticles: Array<ArticleEntity> = [];
             return { articles: newArticles, totalItems: 0 };
@@ -118,18 +81,17 @@ export class ArticleService {
      * @param {[number]} array
      * @returns {Promise<number>}
      */
-    async deleteArticles(array: Array<number>): Promise<number> {
-        let count = 0;
-        for (const t in array) {
-            const article: ArticleEntity = await this.respository.findOneById(array[ t ]);
-            if (article === null) { throw new MessageCodeError("delete:recycling:idMissing"); }
-            article.recycling = true;
-            article.updateAt = new Date();
-            const newArticle: ArticleEntity = article;
-            this.respository.save(newArticle);
-            count++;
+    async deleteArticles(array: Array<number>){
+        const articles: Array<number> = [];
+        await this.respository.findByIds(array).then(a => { a.map((key, value) => {
+             articles.push(key.id);
+        })});
+        const noExit = _.difference(array, articles);
+        if( noExit.length > 0 ) {
+            return {code: 405, message: `以下数据id=${noExit} 不存在`};
         }
-        return count;
+        await this.respository.update(array,{ recycling: true });
+        return {code: 200, message: "修改成功"};
     }
 
     /**
@@ -137,14 +99,14 @@ export class ArticleService {
      * @param {ArticleEntity} article
      * @returns {Promise<void>}
      */
-    async createArticle(req: any, article: ArticleEntity, picture?: PictureFace) {
-        const entity: ClassifyEntity = await this.classifyService.findOneByIdArt(article.classifyId);
-        if (article.classifyId !== null && article.classifyId !== 0 && entity === null) {
+    async createArticle(req: any, article: ArticleEntity) {
+        const entity: ClassifyEntity = await this.classifyService.findOneArt(article.classifyId);
+        if (article.classifyId  &&  !entity) {
             throw new MessageCodeError("page:classify:classifyIdMissing");
         }
         const num: number = await this.classifyService.findLevel(article.classifyId);
         const level: string = this.classifyService.interfaceChange(num);
-        if (article.topPlace === null) {
+        if (!article.topPlace) {
             article.topPlace = "cancel";
         }
         const levelGive: string = article.topPlace;
@@ -154,21 +116,7 @@ export class ArticleService {
         if (level === "level2" && levelGive === "level3") {
             throw new MessageCodeError("create:level:lessThanLevel");
         }
-        article.recycling = false;
-        if (picture) {
-            const result = await this.upLoadPicture(req, picture.bucketName, picture.rawName, picture.base64, 0);
-            article.pictureUrl = result.pictureUrl;
-            article.bucketName = result.bucketName;
-            article.pictureName = result.pictureName;
-            article.type = result.type;
-        }
-        await this.respository
-            .createQueryBuilder()
-            .insert()
-            .into(ArticleEntity)
-            .values(article)
-            .output("id")
-            .execute();
+        await this.respository.save(await this.respository.create(article));
     }
 
     /**
@@ -177,11 +125,11 @@ export class ArticleService {
      *
      * @returns {Promise<void>}
      */
-    async updateArticle(req: any, article: ArticleEntity, picture?: PictureFace) {
-        const art: ArticleEntity = await this.respository.findOneById(article.id);
+    async updateArticle(req: any, article: ArticleEntity) {
+        const art: ArticleEntity = await this.respository.findOne(article.id);
         if (art === null) { throw new MessageCodeError("delete:recycling:idMissing"); }
-        const entity: ClassifyEntity = await this.classifyService.findOneByIdArt(article.classifyId);
-        if (article.classifyId !== null && article.classifyId !== 0 && entity === null) {
+        const entity: ClassifyEntity = await this.classifyService.findOneArt(article.classifyId);
+        if (article.classifyId && !entity) {
             throw new MessageCodeError("page:classify:classifyIdMissing");
         }
         const num: number = await this.classifyService.findLevel(article.classifyId);
@@ -193,21 +141,7 @@ export class ArticleService {
         if (level === "level2" && levelGive === "level3") {
             throw new MessageCodeError("create:level:lessThanLevel");
         }
-        article.updateAt = new Date();
-        if (picture.rawName.length > 0 && picture.base64.length > 0) {
-            const result = await this.upLoadPicture(req, picture.bucketName, picture.rawName, picture.base64, article.id);
-            article.pictureUrl = result.pictureUrl;
-            article.bucketName = result.bucketName;
-            article.pictureName = result.pictureName;
-            article.type = result.type;
-        } else {
-            article.type = art.type;
-            article.pictureName = art.pictureName;
-            article.bucketName = art.bucketName;
-            article.pictureUrl = art.pictureUrl;
-        }
-        const newArt: ArticleEntity = article;
-        await this.respository.updateById(newArt.id, newArt);
+        await this.respository.save(await this.respository.create(article));
     }
 
     /**
@@ -216,18 +150,14 @@ export class ArticleService {
      * @returns {Promise<Array<ArticleEntity>>}
      */
     async recycleFind(limit?: number, pages?: number) {
-        const result = await this.respository.createQueryBuilder()
-            .where("recycling= :recycling", { recycling: true })
-            .orderBy("ArticleEntity.publishedTime", "ASC")
-            .skip(limit * (
-                pages - 1
-            )).take(limit).getManyAndCount();
-        const str: string = JSON.stringify(result);
-        const num: string = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-        const newresult: Array<ArticleEntity> = Array.from(
-            JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))),
-        );
-        return { articles: newresult, totalItems: Number(num) };
+        const result = await this.respository.findAndCount({
+            where: { recycling: true},
+            relations: ["classify"],
+            order: { publishedTime: "DESC"},
+            skip: limit * (pages - 1),
+            take: limit
+        });
+        return { articles: result[0], totalItems: result[1] };
     }
 
     /**
@@ -236,18 +166,20 @@ export class ArticleService {
      * @returns {Promise<number>}
      */
     async recycleDelete(array: Array<number>) {
-        let result;
         try {
-            result = await this.respository.createQueryBuilder().delete()
-                .from(ArticleEntity).whereInIds(array)
-                .output("id").execute()
-                .then(a => {
-                    return a;
-                });
+            const articles: Array<number> = [];
+            await this.respository.findByIds(array).then(a => { a.map((key, value) => {
+                articles.push(key.id);
+            })});
+            const noExit = _.difference(array, articles);
+            if(noExit.length > 0) {
+                return {code: 405, message: `以下数据id=${noExit} 不存在`};
+            }
+            await this.respository.delete(array);
         } catch (err) {
             throw new HttpException("删除错误" + err.toString(), 401);
         }
-        return result;
+        return {code: 200, message: "删除成功"};
     }
 
     /**
@@ -255,19 +187,21 @@ export class ArticleService {
      * @param {[number]} array
      * @returns {Promise<Array<ArticleEntity>>}
      */
-    async reductionArticle(array: Array<number>): Promise<number> {
-        let num = 0;
-        for (const t in array) {
-            const article: ArticleEntity = await this.respository.findOneById(array[ t ]);
-            if (article === null) { throw new MessageCodeError("delete:recycling:idMissing"); }
-            article.recycling = false;
-            article.updateAt = new Date();
-            const newArticle: ArticleEntity = article;
-            this.respository.updateById(newArticle.id, newArticle);
-            num++;
+    async reductionArticle(array: Array<number>) {
+        try {
+            const articles: Array<number> = [];
+            await this.respository.findByIds(array).then(a => { a.map((key, value) => {
+                articles.push(key.id);
+            })});
+            const noExit = _.difference(array, articles);
+            if(noExit.length > 0) {
+                return {code: 405, message: `以下数据id=${noExit} 不存在`};
+            }
+            await this.respository.update(array, { recycling: false});
+        } catch (err) {
+            throw new HttpException("reductionArticle:" + err.toString(), 404);
         }
-
-        return num;
+        return {code: 200 , message: "回收站还原成功"};
     }
 
     /**
@@ -276,19 +210,14 @@ export class ArticleService {
      * @returns {Promise<Array<ArticleEntity>>}
      */
     async findTopPlace(limit?: number, pages?: number) {
-        const result = await this.respository.createQueryBuilder()
-            .where("\"topPlace\"= :topPlace", { topPlace: "global" })
-            .orderBy("ArticleEntity.updateAt", "DESC")
-            .skip(limit * (
-                pages - 1
-            )).take(limit).getManyAndCount();
-        const str: string = JSON.stringify(result);
-        const num: string = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-        const newresult: Array<ArticleEntity> = Array.from(
-            JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))),
-        );
-
-        return { articles: newresult, totalItems: Number(num) };
+        result = await this.respository.findAndCount({
+            relations: ["classify"],
+            where: {topPlace: "global"},
+            order: {publishedTime: "DESC"},
+            skip: limit * (pages - 1),
+            take: limit
+        });
+        return { articles: result[0], totalItems: result[1] };
     }
 
     /**
@@ -300,24 +229,20 @@ export class ArticleService {
      * @returns {Promise<Array<ArticleEntity>>}
      */
     async reductionClassity(id: number, limit?: number, pages?: number) {
-        const entity: ClassifyEntity = await this.classifyService.findOneByIdArt(id);
-        if (entity === null) { throw new MessageCodeError("page:classify:classifyIdMissing"); }
+        const entity: ClassifyEntity = await this.classifyService.findOneArt(id);
+        if (!entity) { throw new MessageCodeError("page:classify:classifyIdMissing"); }
         const array: Array<number> = await this.classifyService.getClassifyId(id);
-        array.push(id);
-        const newArray: Array<number> = Array.from(new Set(array));
-        const result = await this.respository.createQueryBuilder()
-            .where("\"classifyId\" in (:classifyId)  and recycling=true", { classifyId: newArray })
-            .orderBy("id", "ASC")
-            .skip(limit * (
-                pages - 1
-            )).take(limit).getManyAndCount();
-        const str: string = JSON.stringify(result);
-        const num: string = str.substring(str.lastIndexOf(",") + 1, str.lastIndexOf("]"));
-        const newresult: Array<ArticleEntity> = Array.from(
-            JSON.parse(str.substring(str.indexOf("[") + 1, str.lastIndexOf(","))),
-        );
-
-        return { articles: newresult, totalItems: Number(num) };
+        result = await this.respository.findAndCount({
+            where: {
+                classifyId: In(array),
+                recycling: true
+            },
+            relations: ["classify"],
+            order: {publishedTime: "DESC"},
+            skip: limit * (pages - 1),
+            take: limit
+        });
+        return { articles: result[0], totalItems: result[1] };
     }
 
     /**
@@ -326,7 +251,7 @@ export class ArticleService {
      * @returns {Promise<string>}
      */
     async getLevelByClassifyId(id: number): Promise<string> {
-        const entity: ClassifyEntity = await this.classifyService.findOneByIdArt(id);
+        const entity: ClassifyEntity = await this.classifyService.findOneArt(id);
         if (entity === null) { throw new MessageCodeError("delete:recycling:idMissing"); }
         const num: number = await this.classifyService.findLevel(entity.id);
         const level: string = this.classifyService.interfaceChange(num);
@@ -354,19 +279,18 @@ export class ArticleService {
         let result: string;
         let update = true;
         if (id > 0) {
-            const aliasEntity: ArticleEntity = await this.respository.findOneById(id);
-            if (aliasEntity === null) { result = "当前文章不存在"; }
+            const aliasEntity: ArticleEntity = await this.respository.findOne({id});
+            if (!aliasEntity) { result = "当前文章不存在"; }
             update = false;
         }
         if (classifyId > 0) {
-            const entity: ClassifyEntity = await this.classifyService.findOneByIdArt(classifyId);
-            if (entity === null) { result = "对应分类不存在"; }
+            const entity: ClassifyEntity = await this.classifyService.findOneArt(classifyId);
+            if (!entity) { result = "对应分类不存在"; }
             update = false;
         }
         if (!result) {
             update = true;
         }
-
         return { MessageCodeError: result, Continue: update };
     }
 
@@ -380,14 +304,14 @@ export class ArticleService {
     async upLoadPicture(req: any, bucketName: string, rawName: string, base64: string, id?: number) {
         try {
             if (id > 0) {
-                const entity: ArticleEntity = await this.respository.findOneById(id);
-                /*删除图片*/
+                const entity: ArticleEntity = await this.respository.findOne(id);
+              /*  /!*删除图片*!/
                 if (entity && entity.bucketName !== null && entity.pictureName !== null) {
                     const entitys: Array<ArticleEntity> = await this.respository.find({ pictureUrl: entity.pictureUrl });
                     if (entitys.length === 1) {
                         await this.storeService.delete(entity.bucketName, entity.pictureName, entity.type);
                     }
-                }
+                }*/
             }
             const imagePreProcessInfo = new ImagePreProcessInfo();
             imagePreProcessInfo.watermark = false;
@@ -442,17 +366,25 @@ export class ArticleService {
      */
     async getArticleById(id: number) {
         const array: Array<ArticleEntity> = [];
-        const article: ArticleEntity = await this.respository.findOneById(id);
-        if (article === null) { throw new MessageCodeError("delete:recycling:idMissing"); }
+        const article: ArticleEntity = await this.respository.findOne({where:{id: id}, relations: ["classify"]});
+        if (!article) { throw new MessageCodeError("delete:recycling:idMissing"); }
         array.push(article);
         const last = await this.respository.createQueryBuilder()
-            .where('"id" = (select max(id) from public.article_entity_table where "id" < :id  limit 1) ', {id}).getOne();
+            .where('"id" = (select max(id) from public.article_entity_table where "id" < :id and "classifyId" =:classifyId  limit 1) ',
+                 {id, classifyId: article.classifyId}
+                )
+            .getOne();
         if (last) {
+            last.classify = await this.claRespository.findOne({id: last.classifyId});
             array.push(last);
         }
         const next = await this.respository.createQueryBuilder()
-            .where('"id" = (select min(id) from public.article_entity_table where "id" > :id limit 1) ', {id}).getOne();
+            .where('"id" = (select min(id) from public.article_entity_table where "id" > :id and "classifyId" =:classifyId  limit 1) ',
+                 {id, classifyId: article.classifyId}
+                )
+            .getOne();
         if (next) {
+            next.classify = await this.claRespository.findOne({id: next.classifyId});
             array.push(next);
         }
         return { articles: array };

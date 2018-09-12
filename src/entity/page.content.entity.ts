@@ -16,7 +16,7 @@ export class PageContentEntity {
     id: number;
 
     /*页面Id*/
-    @Column()
+    @Column({ nullable: true })
     parentId: number;
 
     /*页面内容*/
@@ -30,13 +30,11 @@ export class PageContentEntity {
         type => PageEntity,
         page => page.contents,
         {
-            cascadeInsert: false,
-            cascadeUpdate: false,
-            cascadeRemove: false,
+            cascade: false,
             onDelete: "CASCADE",
-            lazy: false,
-            eager: false,
             nullable: true,
+            lazy: false,
+            eager: false
         },
     )
     @JoinColumn({ name: "parentId", referencedColumnName: "id" })

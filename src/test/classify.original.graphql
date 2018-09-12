@@ -1,0 +1,73 @@
+# 创建分类
+mutation createClassify{
+    createClassify(useFor:page,classify:{
+        classifyAlias:"今日测试2",
+        title: "今日测试2",
+        parentId: 2
+    })
+
+}
+# 修改分类
+mutation updateClassify{
+    updateClassify(useFor: art, classify:{
+        id: 31,
+        classifyAlias: "今日测试4"
+    })
+}
+# 移动分类
+mutation mobileClassify {
+    mobileClassify(useFor:art, id:31, parentId:4)
+}
+# 删除分类
+mutation mobileClassify {
+    deleteClassify(useFor:page, id:3)
+}
+# 获取所有分类
+query  getClassifys{
+    getClassifys(useFor:art, id:3){
+        id
+        title,
+        classifyAlias,
+        chainUrl
+        children{
+            id,
+            title,
+            classifyAlias,
+            chainUrl,
+            children{
+                id,
+                title
+            }
+        }
+    }
+}
+# 获取分类详情
+query  getClassifys{
+    getClassifyById(useFor:art,id:3){
+        MessageCodeError,
+        classifyEntity{
+            id
+            title,
+            classifyAlias,
+            chainUrl
+        }
+    }
+}
+# 获取分类所有上级分类节点
+query  getParentClassify{
+    getParentClassify(id:8){
+        id
+        title,
+        classifyAlias,
+        chainUrl,
+        parent{
+            id,
+            title,
+            classifyAlias,
+            parent{
+                id,
+                title
+            }
+        }
+    }
+}

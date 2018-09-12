@@ -1,4 +1,7 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import {
+    Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn,
+    UpdateDateColumn
+} from "typeorm";
 import { PageContentEntity } from "./page.content.entity";
 import { PageClassifyEntity } from "./pageClassify.entity";
 
@@ -27,12 +30,6 @@ export class PageEntity {
     })
     classifyId: number;
 
-    /*页面分类Id*/
-    @Column({
-        nullable: true,
-    })
-    classify: string;
-
     /*创建时间*/
     @CreateDateColumn()
     createAt: Date;
@@ -50,13 +47,22 @@ export class PageEntity {
     /*页面内容*/
     @OneToMany(
         type => PageContentEntity,
-        pageContentEntity => pageContentEntity.page,
+        pageContentEntity => pageContentEntity.page, {
+            cascade:  ["insert", "update"],
+            lazy: false,
+            eager: false
+        }
     )
     contents: Array<PageContentEntity>;
 
-    @OneToMany(
+    /*分类*/
+    @ManyToOne(
         type => PageClassifyEntity,
         pageClassifyEntity => pageClassifyEntity.pages,
     )
-    classifications: Array<PageClassifyEntity>;
+    @JoinColumn({
+        name: "classifyId",
+        referencedColumnName: "id"
+    })
+    classify: Array<PageClassifyEntity>;
 }
